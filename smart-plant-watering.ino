@@ -56,98 +56,8 @@ being on and in this time relay will be on again. This var make 60 seconds delay
 to solve this problem. ↓*/
 bool intervalDelay = false;
 
-bool userRequestedOff = false; // Flag to track user request to turn relay off
+
 bool relayState = HIGH; // Initial state is OFF
-
-const char* htmlContent = R"(
-<!DOCTYPE HTML>
-<html>
-<head><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pasio Watering</title>
-<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}
-.button { background-color: #195B6A; border: none; color: white; padding: 16px 40px;
-text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}
-</style></head>
-<body>
-<h1 align=center>Pasio Watering</h1>
-<h2 align=center>Status: %s</h2>
-<br><br>
-<a href="/RELAY=ON"><button class="button">TURN ON</button></a><br><br>
-<a href="/RELAY=OFF"><button class="button">TURN OFF</button></a><br>
-</body></html>
-)";
-
-void setup() {
-  Serial.begin(115200);
-  pinMode(relayPin, OUTPUT);
-  RelayOff();
-
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000U);
-    Serial.print(".");
-  }
-
-  Serial.println("\nConnected to WiFi");
-
-  server.begin();
-  Serial.println("Server started");
-  Serial.println("Use this URL to connect:");
-  Serial.print("http://");
-  Serial.print(WiFi.localIP());
-  Serial.println("/");
-} // end of setup
-
-void loop() { //*********************************************************************************
-  WiFiClient client = server.available();
-  if (client) {
-    Serial.println("New client");
-
-    String request = client.readStringUntil('\r');
-    Serial.println(request);
-
-    if (request.indexOf("/RELAY=ON") != -1) {
-      RelayOn();
-      userRequestedOff = false; // Reset user request flag
-    } else if (request.indexOf("/RELAY=OFF") != -1) {
-      RelayOff();
-      userRequestedOff = true; // Set user request flag
-    }
-
-    client.flush();
-
-    String statusMessage = (relayState == LOW) ? "ON" : "OFF";
-    String response = String(htmlContent);
-    response.replace("%s", statusMessage);
-
-    client.println("HTTP/1.1 200 OK");
-    client.println("Content-Type: text/html");
-    client.println("");
-    client.println(response);
-
-    client.stop();
-    Serial.println("Client disconnected");
-  }
-
-  GetTime();
-
-  // Check if the user requested to turn the relay off
-  if (userRequestedOff) {
-    RelayOff();
-  }
-  
-  if ( (dayOfWeek == 2U || dayOfWeek == 6U) && hour == 7U && minute == 0U ) {
-    RelayOn();
-    delay(17000U); // delay for 17 seconds
-    intervalDelay = true;
-  }
-  
-  if(intervalDelay){
-    RelayOff();
-    delay(62000U); //because the delay time is so short, in the next cycle time is hit again
-    intervalDelay = false;
-  }
-} // end of loop *********************************************************************************
 
 
 /*This function curl a time API and fetch day of week, hour, minute 
@@ -198,3 +108,60 @@ void RelayOff() {
   digitalWrite(relayPin, HIGH);
   relayState = HIGH;
 }
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(relayPin, OUTPUT);
+  RelayOff();
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000U);
+    Serial.print(".");
+  }
+
+  Serial.println("\nConnected to WiFi");
+} // end of setup
+
+bool day1 = false;
+bool day2 = false;
+
+void loop() { //*********************************************************************************
+ 
+  GetTime();
+  
+  if(dayOfWeek == 3U && hour == 20U && minute == 0U)
+  {
+    RelayOn();
+    delay(17000U);
+    day1 = true;
+  }
+
+  else if(dayOfWeek == 7U && hour == 20U && minute == 0U)
+  {
+    RelayOn();
+    delay(17000U);
+    day2 = true;
+  }
+
+  RelayOff();
+
+  if(day1 == true)
+  {
+    //3d + 23h + 40m
+    delay(344400000U); 
+    day1 = false;
+  }
+
+  else if(day2 == true)
+  {
+    //2d + 23h + 40m
+    delay(258000000U);
+    day2 = false;
+  }
+
+
+} // end of loop *********************************************************************************
+
+
+
