@@ -3,8 +3,6 @@
 #include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
 
-// *********************Physical address of esp: "####" **************************//
-
 // #*#*#*#*#*# Important Caution #*#*#*#*#*#
 // Dont touch relay module specially it's esp cause short connection.
 
@@ -137,7 +135,7 @@ void loop() { //****************************************************************
   if (userRequestedOff) {
     RelayOff();
   }
-
+  
   if ( (dayOfWeek == 2U || dayOfWeek == 6U) && hour == 7U && minute == 0U ) {
     RelayOn();
     delay(17000U); // delay for 17 seconds
