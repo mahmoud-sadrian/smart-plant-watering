@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Local Plant Watering (PHP)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>Local Plant Watering Control</header>
+  <div class="container">
+    <label>Duration (seconds)</label>
+    <input type="number" id="duration" value="5" min="1">
+    <button onclick="sendWater()">Water Now</button>
+  </div>
+
+  <script>
+    function sendWater() {
+      const duration = document.getElementById("duration").value;
+      fetch("water.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "duration=" + duration
+      })
+      .then(res => res.text())
+      .then(msg => alert(msg));
+    }
+  </script>
+</body>
+</html>
